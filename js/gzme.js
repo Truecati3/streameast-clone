@@ -1,30 +1,34 @@
-/* GZME — browser console. Every title is a real archive.org in-browser
-   emulation, launched in an iframe. No invented entries. */
+/* GZME — browser console. Real browser ports + archive.org in-browser
+   emulations on one shelf, launched fullscreen in an iframe. No invented
+   entries, no fake covers. */
 window.SE_GZME = (function () {
   "use strict";
 
   const EMBED = "https://archive.org/embed/";
 
   /* Browser ports, verified live at build time: HTTP 200 and no framing block.
-     "link" entries ship an X-Frame-Options/CSP block, so they open in a tab. */
+     "link" entries ship an X-Frame-Options/CSP block, so they open in a tab.
+     cover: og:image served by the port host, or a title-screen capture saved
+     in assets/art for hosts that ship no og:image. */
   const PORTS = [
-    { id: "port-bo1", title: "Black Ops: Zombies", year: 2010, platform: "Web", genre: "Ports", mode: "embed", url: "https://vel.gg/bolz", art: ["#6b1a1a", "#160505"] },
-    { id: "port-gta-vc", title: "GTA: Vice City", year: 2002, platform: "Web", genre: "Ports", mode: "embed", url: "https://joncodeofficial.github.io/gta-vice-city-wasm/", art: ["#7a1f4a", "#1a0512"], note: "bring your own game files" },
-    { id: "port-halo", title: "Halo: Combat Evolved", year: 2001, platform: "Web", genre: "Ports", mode: "embed", url: "https://mitchellhynes.com/halo", art: ["#1f4a5a", "#06121a"] },
-    { id: "port-halo-mobile", title: "Halo CE — Mobile", year: 2001, platform: "Web", genre: "Ports", mode: "embed", url: "https://hcemobile.com", art: ["#2a4a6b", "#08131c"] },
-    { id: "port-simpsons", title: "The Simpsons: Hit & Run", year: 2003, platform: "Web", genre: "Ports", mode: "embed", url: "https://shar-wasm.cjoseph.workers.dev", art: ["#6b5a0f", "#161304"] },
-    { id: "port-pes6", title: "Pro Evolution Soccer 6", year: 2006, platform: "Web", genre: "Ports", mode: "embed", url: "https://pes6.optijuegos.net", art: ["#1f5a2a", "#04120a"] },
-    { id: "port-surf", title: "Surfd — CS Surf", year: 2024, platform: "Web", genre: "Ports", mode: "embed", url: "https://surfd.net", art: ["#2a5a6b", "#08161c"] },
-    { id: "port-q2", title: "Quake II", year: 1997, platform: "Web", genre: "Ports", mode: "embed", url: "https://q2.pieter.com", art: ["#5c3a1e", "#0b0805"] },
-    { id: "port-q3", title: "Quake III Arena", year: 1999, platform: "Web", genre: "Ports", mode: "embed", url: "https://q3.pieter.com", art: ["#6b2a10", "#160803"] },
-    { id: "port-rtcw", title: "Return to Castle Wolfenstein", year: 2001, platform: "Web", genre: "Ports", mode: "embed", url: "https://rtcw.pieter.com", art: ["#3a3a4a", "#0b0b10"] },
-    { id: "port-urban-terror", title: "Urban Terror", year: 2000, platform: "Web", genre: "Ports", mode: "embed", url: "https://ut.pieter.com", art: ["#4a3a1a", "#120d04"] },
-    { id: "port-skate-rust", title: "Skate Rust", year: 2025, platform: "Web", genre: "Ports", mode: "link", url: "https://global-terror.net", art: ["#5a2a1a", "#140804"] },
-    { id: "port-minecraft", title: "Minecraft", year: 2011, platform: "Web", genre: "Ports", mode: "link", url: "https://wasmarcade.com/minecraft", art: ["#2a5a1f", "#081206"] }
+    { id: "port-bo1", title: "Black Ops: Zombies", year: 2010, platform: "Web", genre: "Ports", mode: "embed", url: "https://vel.gg/bolz", art: ["#6b1a1a", "#160505"], cover: "assets/art/port-bo1.jpg" },
+    { id: "port-gta-vc", title: "GTA: Vice City", year: 2002, platform: "Web", genre: "Ports", mode: "embed", url: "https://joncodeofficial.github.io/gta-vice-city-wasm/", art: ["#7a1f4a", "#1a0512"], note: "bring your own game files", cover: "assets/art/gta-vc.jpg" },
+    { id: "port-halo", title: "Halo: Combat Evolved", year: 2001, platform: "Web", genre: "Ports", mode: "embed", url: "https://mitchellhynes.com/halo", art: ["#1f4a5a", "#06121a"], note: "bring your own disc (XISO)", cover: "assets/art/halo.jpg" },
+    { id: "port-halo-mobile", title: "Halo CE — Mobile", year: 2001, platform: "Web", genre: "Ports", mode: "embed", url: "https://hcemobile.com", art: ["#2a4a6b", "#08131c"], cover: "assets/art/halo-mobile.jpg" },
+    { id: "port-simpsons", title: "The Simpsons: Hit & Run", year: 2003, platform: "Web", genre: "Ports", mode: "embed", url: "https://shar-wasm.cjoseph.workers.dev", art: ["#6b5a0f", "#161304"], note: "click Play to boot", cover: "assets/art/simpsons.jpg" },
+    { id: "port-pes6", title: "Pro Evolution Soccer 6", year: 2006, platform: "Web", genre: "Ports", mode: "embed", url: "https://pes6.optijuegos.net", art: ["#1f5a2a", "#04120a"], cover: "https://pes6.optijuegos.net/assets/logo.png" },
+    { id: "port-surf", title: "Surfd — CS Surf", year: 2024, platform: "Web", genre: "Ports", mode: "embed", url: "https://surfd.net", art: ["#2a5a6b", "#08161c"], cover: "https://surfd.net/social/surfd-card-v2.png" },
+    { id: "port-q2", title: "Quake II", year: 1997, platform: "Web", genre: "Ports", mode: "embed", url: "https://q2.pieter.com", art: ["#5c3a1e", "#0b0805"], cover: "https://q2.pieter.com/assets/og.jpg" },
+    { id: "port-q3", title: "Quake III Arena", year: 1999, platform: "Web", genre: "Ports", mode: "embed", url: "https://q3.pieter.com", art: ["#6b2a10", "#160803"], cover: "https://q3.pieter.com/assets/og.jpg" },
+    { id: "port-rtcw", title: "Return to Castle Wolfenstein", year: 2001, platform: "Web", genre: "Ports", mode: "embed", url: "https://rtcw.pieter.com", art: ["#3a3a4a", "#0b0b10"], cover: "https://rtcw.pieter.com/assets/og.jpg?v=1" },
+    { id: "port-urban-terror", title: "Urban Terror", year: 2000, platform: "Web", genre: "Ports", mode: "embed", url: "https://ut.pieter.com", art: ["#4a3a1a", "#120d04"], cover: "https://ut.pieter.com/assets/og.jpg?v=1" },
+    { id: "port-skate-rust", title: "Skate Rust", year: 2025, platform: "Web", genre: "Ports", mode: "link", url: "https://global-terror.net", art: ["#5a2a1a", "#140804"], cover: "assets/art/skate-rust.jpg" },
+    { id: "port-minecraft", title: "Minecraft", year: 2011, platform: "Web", genre: "Ports", mode: "link", url: "https://wasmarcade.com/minecraft", art: ["#2a5a1f", "#081206"], cover: "https://wasmarcade.com/og/minecraft.jpg" }
   ];
 
 
-  /* art: two-stop gradient used as the tile artwork. */
+  /* art: two-stop gradient behind every tile. Cover img sits on top; without
+     a cover the gradient is the artwork. */
   const GAMES = [
     { id: "doomII", title: "Doom II", year: 1994, platform: "DOS", genre: "Shooters", art: ["#8f2410", "#260604"] },
     { id: "Wolf3d-sw1", title: "Wolfenstein 3D", year: 1992, platform: "DOS", genre: "Shooters", art: ["#2f4f7a", "#0a1220"] },
@@ -90,6 +94,18 @@ window.SE_GZME = (function () {
     );
   }
 
+  function cover(g) {
+    if (g.cover) return g.cover;
+    /* Archive catalogue: the item's own thumbnail via the img service. */
+    return "https://archive.org/services/img/" + encodeURIComponent(g.id);
+  }
+
+  function status(g) {
+    if (g.note) return g.note;
+    if (g.mode === "link") return "opens in a new tab";
+    return g.genre === "Ports" ? "runs in a fullscreen frame" : "archive.org emulation";
+  }
+
   function url(g) {
     return g.url ? g.url : EMBED + g.id;
   }
@@ -99,66 +115,75 @@ window.SE_GZME = (function () {
     return (
       '<button class="gz-tile" data-game="' + esc(g.id) + '" style="--art:' + art(g) + '"' +
       ' aria-label="Play ' + esc(g.title) + '">' +
+      '<img class="gz-tile__art" src="' + esc(cover(g)) + '" alt="" loading="lazy" decoding="async"' +
+      ' onerror="this.classList.add(\'is-off\')">' +
       '<span class="gz-tile__badge">' + esc(g.platform) + (link ? " ↗" : "") + "</span>" +
-      '<span class="gz-tile__name">' + esc(g.title) + "</span>" +
-      '<span class="gz-tile__sub">' + g.year + " · " +
-      (link ? "opens in tab" : g.note ? esc(g.note) : g.genre === "Ports" ? "runs in frame" : esc(g.genre)) +
-      "</span>" +
       "</button>"
     );
   }
 
-  function hero() {
-    const g = byId(FEATURED);
-    const link = g.mode === "link";
+  function nowPanel(g) {
     return (
-      '<section class="gz-hero">' +
-      '<div class="gz-hero__art" style="--art:' + art(g) + '"></div>' +
-      '<div class="gz-hero__body">' +
-      '<span class="gz-eyebrow"><b>Play now</b> ' +
-      (link ? "Opens in a new tab" : "No install · runs in the frame") + "</span>" +
-      '<h1 class="gz-hero__title">' + esc(g.title) + "</h1>" +
-      '<div class="gz-hero__meta">' +
-      "<span>" + g.year + "</span><span class=\"sep\"></span>" +
-      "<span>" + esc(g.platform) + "</span><span class=\"sep\"></span>" +
-      "<span>" + esc(g.genre) + "</span><span class=\"sep\"></span>" +
-      "<span>" + all().length + " titles docked</span>" +
+      '<section class="gz-now">' +
+      '<span class="gz-now__eyebrow"><b>Focused</b><span id="gzStatus">' + esc(status(g)) + "</span></span>" +
+      '<h1 class="gz-now__title" id="gzTitle">' + esc(g.title) + "</h1>" +
+      '<div class="gz-now__meta" id="gzMeta">' +
+      g.year + " · " + esc(g.platform) + " · " + esc(g.genre) +
+      " · " + all().length + " titles docked" +
       "</div>" +
-      '<button class="gz-play" data-game="' + esc(g.id) + '">' +
+      '<div class="gz-now__actions">' +
+      '<button class="gz-play" id="gzPlay" data-game="' + esc(g.id) + '">' +
       '<span class="glyph">✕</span> Play</button>' +
+      '<span class="gz-now__hint"><span class="glyph">F</span> Fullscreen once it boots</span>' +
       "</div></section>"
     );
   }
 
-  function row(name) {
-    const list = all().filter(function (g) { return g.genre === name; });
-    if (!list.length) return "";
-    return (
-      '<section class="gz-row">' +
-      '<div class="gz-row__head">' +
-      '<h2 class="gz-row__title">' + esc(name) + "</h2>" +
-      '<span class="gz-row__count">' + list.length + " titles</span>" +
-      "</div>" +
-      '<div class="gz-shelf">' + list.map(tile).join("") + "</div>" +
-      "</section>"
-    );
+  function shelf() {
+    return '<div class="gz-tiles">' + all().map(tile).join("") + "</div>";
   }
 
   function bar() {
     return (
       '<div class="gz-bar">' +
       '<span class="gz-hint"><span class="glyph">✕</span> Play</span>' +
-      '<span class="gz-hint"><span class="glyph">○</span> Back</span>' +
       '<span class="gz-hint"><span class="glyph">←→</span> Browse</span>' +
       '<span class="gz-hint"><span class="glyph">F</span> Fullscreen</span>' +
       '<span class="gz-hint"><span class="glyph">esc</span> Exit</span>' +
       '<span class="gz-bar__spacer"></span>' +
-      '<span class="gz-bar__status">Archive.org emulation · keyboard + gamepad</span>' +
+      '<span class="gz-bar__status">Keyboard + gamepad</span>' +
       "</div>"
     );
   }
 
   let clockTimer = null;
+  let bgFlip = false;
+
+  /* Full-bleed key art behind everything: gradient base on the root, two img
+     layers crossfading on top. Fails silent — a dead cover leaves the gradient. */
+  function setHero(g) {
+    const root = document.querySelector(".gzme");
+    if (root) root.style.setProperty("--art", art(g));
+
+    const layers = { a: document.getElementById("gzBgA"), b: document.getElementById("gzBgB") };
+    if (layers.a && layers.b) {
+      const inEl = bgFlip ? layers.a : layers.b;
+      const outEl = bgFlip ? layers.b : layers.a;
+      bgFlip = !bgFlip;
+      inEl.src = cover(g);
+      inEl.classList.add("is-on");
+      outEl.classList.remove("is-on");
+    }
+
+    const title = document.getElementById("gzTitle");
+    if (title) title.textContent = g.title;
+    const meta = document.getElementById("gzMeta");
+    if (meta) meta.textContent = g.year + " · " + g.platform + " · " + g.genre;
+    const stat = document.getElementById("gzStatus");
+    if (stat) stat.textContent = status(g);
+    const play = document.getElementById("gzPlay");
+    if (play) play.setAttribute("data-game", g.id);
+  }
 
   function tick() {
     const el = document.getElementById("gzClock");
@@ -184,19 +209,25 @@ window.SE_GZME = (function () {
   function render(view) {
     view.innerHTML =
       '<div class="gzme">' +
+      '<div class="gz-bg"><img id="gzBgA" alt=""><img id="gzBgB" alt=""></div>' +
       '<div class="gz-top">' +
       '<span class="gz-logo"><i></i>GZME</span>' +
+      '<span class="gz-count">' + all().length + " titles</span>" +
       '<div class="gz-top__meta">' +
       '<span class="gz-user"><img data-pfp src="assets/pfp.svg" alt=""><span>@1387</span></span>' +
       '<span class="gz-clock" id="gzClock"></span>' +
       "</div></div>" +
-      hero() +
-      ROWS.map(row).join("") +
+      '<div class="gz-home">' +
+      '<div class="gz-tiles-wrap">' + shelf() + "</div>" +
+      nowPanel(byId(FEATURED)) +
+      "</div>" +
       bar() +
       "</div>";
 
     tiles = Array.prototype.slice.call(view.querySelectorAll(".gz-tile"));
     focusIndex = 0;
+    if (tiles[0]) tiles[0].classList.add("focused");
+    setHero(byId(FEATURED));
     startClock();
     document.title = "GZME — Browser Console";
     if (window.SE_HUB && SE_HUB.upgradePfp) SE_HUB.upgradePfp();
@@ -213,6 +244,7 @@ window.SE_GZME = (function () {
     el.classList.add("focused");
     el.focus({ preventScroll: true });
     el.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+    setHero(byId(el.getAttribute("data-game")));
   }
 
   function launch(game) {
@@ -310,6 +342,7 @@ window.SE_GZME = (function () {
         if (tiles[focusIndex]) tiles[focusIndex].classList.remove("focused");
         focusIndex = i;
         el.classList.add("focused");
+        setHero(byId(el.getAttribute("data-game")));
       }
     });
 
@@ -348,7 +381,8 @@ window.SE_GZME = (function () {
         focusTile(focusIndex - 5);
       } else if (e.key === "Enter" && document.activeElement === document.body) {
         e.preventDefault();
-        focusTile(focusIndex);
+        const el = tiles[focusIndex];
+        if (el) launch(byId(el.getAttribute("data-game")));
       }
     });
   }

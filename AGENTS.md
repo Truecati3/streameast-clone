@@ -88,6 +88,12 @@ Then add one entry to `PORTS` or `GAMES` in `js/gzme.js`:
 be one of `ROWS`, otherwise the tile is unreachable. Never invent a title and never
 leave a dead tile in the array — verify, then ship.
 
+**Cover shapes:** ports take `cover` with the host's `og:image` URL, or a 480×480
+title-screen capture at `assets/art/<id>.jpg` when the host ships none. Archive entries
+skip `cover` — the item thumbnail resolves through
+`https://archive.org/services/img/<identifier>` automatically. The gradient behind the
+tile catches anything that fails.
+
 ## Conventions
 
 - 2-space indent, double quotes, semicolons, `function` declarations over arrow functions
@@ -112,8 +118,9 @@ Manual smoke, all must pass:
    an explicit error with a retry.
 4. Back returns to home with the league filter intact, and the Mothership pill returns
    to the hub.
-5. GZME renders the Ports shelf plus the archive shelves; a tile launches in the
-   fullscreen overlay; `F` toggles fullscreen, `Esc` leaves it and then closes.
+5. GZME renders the PS5-style row — cover tiles with a white focus ring and blurred
+   key art behind the focused tile. A tile launches in the fullscreen overlay;
+   `F` toggles fullscreen, `Esc` leaves it and then closes.
 
 `npm run check` is what CI runs. If it fails locally it fails there.
 

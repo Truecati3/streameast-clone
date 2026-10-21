@@ -57,16 +57,17 @@ network retries and server switching.
 
 ## GZME
 
-`js/gzme.js` is a console dashboard: hero title, shelf rows by genre, focus ring,
-controller hints, and a launch overlay.
+`js/gzme.js` is a PS5-style console home: full-bleed blurred key art behind a single
+horizontal icon row, white focus ring on the focused tile, big light title stack
+below it, glyph hint bar.
 
-Two shelves feed it:
+Two sources feed it:
 
 - **Ports** — real browser ports of full games (Black Ops Zombies, Halo CE, Quake II/III,
   RTCW, Urban Terror, PES 6, Simpsons Hit & Run, Surfd, GTA Vice City, Skate Rust,
   Minecraft). Each URL is verified live before it ships. Entries whose host sends
   `X-Frame-Options` or `frame-ancestors` are marked `mode: "link"` and open in a tab;
-  everything else plays in the overlay.
+  everything else plays in the fullscreen overlay.
 - **Archive** — Internet Archive in-browser emulations played through
   `https://archive.org/embed/<identifier>`, 30 titles across DOS, NES, SNES, Genesis
   and Game Boy.
@@ -74,12 +75,15 @@ Two shelves feed it:
 Nothing in the catalog is invented. If a port goes down (DMCA, dead TLS, 404) it comes
 out of the array rather than sitting there as a dead tile.
 
-The overlay opens in place, grabs fullscreen, `F` toggles fullscreen, `Esc` leaves
-fullscreen then closes the overlay. Arrow keys walk the shelves, `Enter` launches the
-focused tile.
+**Covers:** every tile carries real art. Ports use the host's own `og:image`, or a
+title-screen capture saved in `assets/art/<id>.jpg` for hosts without one. Archive
+titles resolve their item thumbnail through `https://archive.org/services/img/<id>`
+automatically. A CSS gradient sits behind every tile image, so a dead cover degrades
+to colour instead of a broken-image glyph.
 
-Tiles use CSS gradient art rather than cover scans, so there is no third-party
-artwork in the repo and no broken image states.
+The overlay opens in place, grabs fullscreen, `F` toggles fullscreen, `Esc` leaves
+fullscreen then closes the overlay. Arrow keys walk the row, `Enter` launches the
+focused tile.
 
 ## Design
 
