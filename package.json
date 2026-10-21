@@ -1,0 +1,15 @@
+{
+  "name": "streameast-clone",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static sports streaming frontend: live scoreboard, embedded players, HLS fallback.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "serve": "python serve.py --port 8080",
+    "check": "node scripts/check.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

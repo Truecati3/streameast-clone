@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Repo checks
+        run: npm run check
+
+      - name: Smoke serve
+        run: |
+          python3 serve.py --port 8080 &
+          sleep 2
+          curl -fsS http://localhost:8080/ | grep -q "StreamEast"
+          curl -fsS http://localhost:8080/js/data.js | head -c 40

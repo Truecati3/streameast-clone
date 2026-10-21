@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="StreamEast clone — live sports streams, schedules and scores.">
+<meta name="theme-color" content="#08090b">
+<meta property="og:title" content="StreamEast — Live Sports">
+<meta property="og:description" content="Live scores, schedules and streams.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23ff2d3f'/%3E%3Cpath d='M10 11h12l-7 10-7-10z' fill='%23fff'/%3E%3C/svg%3E">
+<title>StreamEast — Live Sports Streams</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="css/style.css?v=3">
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-inner">
+    <a class="brand" href="#/" aria-label="StreamEast home">
+      Stream<span>East</span>
+    </a>
+
+    <nav class="league-nav" id="leagueNav" aria-label="Leagues"></nav>
+
+    <div class="hdr-tools">
+      <div class="search">
+        <input id="searchInput" type="search" placeholder="Search teams or events"
+               autocomplete="off" spellcheck="false" aria-label="Search teams or events">
+        <div class="search-results" id="searchResults" hidden></div>
+      </div>
+      <button class="icon-btn" id="menuBtn" aria-label="Toggle menu" aria-expanded="false">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" fill="none"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="view" class="view"></main>
+
+<footer class="ftr">
+  <div class="ftr-inner">
+    <span class="ftr-brand">Stream<span>East</span></span>
+    <span class="ftr-note">Live scores via ESPN · streams via third-party embeds</span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js"></script>
+<script src="js/mirrors.js?v=3"></script>
+<script src="js/data.js?v=3"></script>
+<script src="js/app.js?v=3"></script>
+<script src="js/player.js?v=3"></script>
+</body>
+</html>
