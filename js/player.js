@@ -641,7 +641,7 @@ window.SE_PLAYER = (function () {
     });
 
     on(backBtn, "click", function () {
-      location.hash = "#/";
+      location.hash = "#/stream";
     });
 
     on(shell, "mousemove", wake);

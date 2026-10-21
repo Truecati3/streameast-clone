@@ -205,7 +205,7 @@
   function renderNav() {
     nav.innerHTML = D.LEAGUES.map(function (l) {
       return (
-        '<a href="#/l/' +
+        '<a href="#/stream/l/' +
         l.id +
         '" class="' +
         (l.id === state.league ? "active" : "") +
@@ -273,7 +273,7 @@
     clearInterval(refreshTimer);
     refreshTimer = setInterval(function () {
       if (document.hidden) return;
-      if (location.hash.indexOf("#/watch/") === 0) return;
+      if (location.hash.indexOf("#/stream/watch/") === 0) return;
       reload(false);
     }, 60000);
   }
@@ -293,15 +293,72 @@
 
   function parseRoute() {
     const hash = location.hash || "#/";
-    return {
-      watch: (hash.match(/^#\/watch\/([\w-]+)$/) || [])[1] || null,
-      league: (hash.match(/^#\/l\/([\w-]+)$/) || [])[1] || null
-    };
+
+    if (hash === "#/" || hash === "#") {
+      return { hub: true, gzme: false, watch: null, league: null };
+    }
+    if (hash.indexOf("#/gzme") === 0) {
+      return { hub: false, gzme: true, watch: null, league: null };
+    }
+    if (hash.indexOf("#/stream") === 0) {
+      return {
+        hub: false,
+        gzme: false,
+        watch: (hash.match(/^#\/stream\/watch\/([\w-]+)/) || [])[1] || null,
+        league: (hash.match(/^#\/stream\/l\/([\w-]+)/) || [])[1] || null
+      };
+    }
+
+    /* anything else is not a dock — the hub owns unknown hashes */
+    return { hub: true, gzme: false, watch: null, league: null };
+  }
+
+  function setRouteChrome(kind) {
+    document.body.setAttribute("data-route", kind);
+    const tabs = document.querySelectorAll("#mnavTabs a");
+    for (let i = 0; i < tabs.length; i++) {
+      tabs[i].classList.toggle("active", tabs[i].getAttribute("data-tab") === kind);
+    }
+    if (kind === "stream") document.title = "StreamEast — Live Sports Streams";
+    else if (kind === "hub") document.title = "Mothership";
   }
 
   async function route() {
     const token = ++routeToken;
+    const hash = location.hash || "#/";
+
+    /* legacy hashes from before the dock existed */
+    if (/^#\/watch\//.test(hash)) {
+      location.replace(hash.replace("#/watch/", "#/stream/watch/"));
+      return;
+    }
+    if (/^#\/l\//.test(hash)) {
+      location.replace(hash.replace("#/l/", "#/stream/l/"));
+      return;
+    }
+
     const r = parseRoute();
+
+    if (r.hub) {
+      SE_PLAYER.destroy();
+      if (window.SE_GZME) SE_GZME.destroy();
+      clearInterval(refreshTimer);
+      setRouteChrome("hub");
+      window.SE_HUB.render(view);
+      window.scrollTo(0, 0);
+      return;
+    }
+
+    if (r.gzme) {
+      SE_PLAYER.destroy();
+      clearInterval(refreshTimer);
+      setRouteChrome("gzme");
+      window.SE_GZME.render(view);
+      window.scrollTo(0, 0);
+      return;
+    }
+
+    setRouteChrome("stream");
 
     if (r.watch) {
       renderNav();
@@ -317,7 +374,7 @@
 
       const game = GAMES.find(function (g) { return g.id === r.watch; });
       if (!game) {
-        location.hash = "#/";
+        location.hash = "#/stream";
         return;
       }
       SE_PLAYER.mount(game);
@@ -402,8 +459,8 @@
       const id = watchEl.getAttribute("data-watch");
       searchResults.hidden = true;
       searchInput.value = "";
-      if (location.hash === "#/watch/" + id) route();
-      else location.hash = "#/watch/" + id;
+      if (location.hash === "#/stream/watch/" + id) route();
+      else location.hash = "#/stream/watch/" + id;
       return;
     }
     if (!e.target.closest(".search")) searchResults.hidden = true;

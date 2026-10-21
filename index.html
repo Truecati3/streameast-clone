@@ -3,26 +3,57 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="StreamEast clone — live sports streams, schedules and scores.">
+<meta name="description" content="Mothership — a dock for StreamEast live sports and GZME browser games.">
 <meta name="theme-color" content="#08090b">
-<meta property="og:title" content="StreamEast — Live Sports">
-<meta property="og:description" content="Live scores, schedules and streams.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23ff2d3f'/%3E%3Cpath d='M10 11h12l-7 10-7-10z' fill='%23fff'/%3E%3C/svg%3E">
-<title>StreamEast — Live Sports Streams</title>
+<meta property="og:title" content="Mothership">
+<meta property="og:description" content="StreamEast live sports and GZME browser games, one dock.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23ff4c25'/%3E%3Cpath d='M9 20V12l7 5 7-5v8' stroke='%23000' stroke-width='2.4' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E">
+<title>Mothership</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
-<link rel="stylesheet" href="css/style.css?v=4">
+<link rel="stylesheet" href="css/style.css?v=7">
+<link rel="stylesheet" href="css/mothership.css?v=7">
+<link rel="stylesheet" href="css/gzme.css?v=7">
 </head>
-<body>
+<body data-route="hub">
 
-<header class="hdr">
+<header class="mnav" id="mnav">
+  <a class="mnav-brand" href="#/" aria-label="Mothership home">
+    <span class="mnav-mark" aria-hidden="true">
+      <i></i><i></i><i></i>
+    </span>
+    <span class="mnav-word">MOTHER<span>SHIP</span></span>
+  </a>
+
+  <nav class="mnav-tabs" id="mnavTabs" aria-label="Sections">
+    <a href="#/" data-tab="hub">Home</a>
+    <a href="#/stream" data-tab="stream">StreamEast</a>
+    <a href="#/gzme" data-tab="gzme">GZME</a>
+  </nav>
+
+  <a class="mnav-disc" href="https://discord.com/users/1387" target="_blank" rel="noopener">
+    <span class="mnav-pfp">
+      <img data-pfp src="assets/pfp.svg" alt="" width="26" height="26">
+    </span>
+    <span class="mnav-handle">@1387</span>
+  </a>
+</header>
+
+<header class="hdr" id="streamHdr">
   <div class="hdr-inner">
-    <a class="brand" href="#/" aria-label="StreamEast home">
+    <a class="brand" href="#/stream" aria-label="StreamEast home">
       Stream<span>East</span>
     </a>
 
     <nav class="league-nav" id="leagueNav" aria-label="Leagues"></nav>
 
     <div class="hdr-tools">
+      <a class="hdr-home" href="#/" title="Back to Mothership">
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+          <path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.2" fill="none"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Mothership</span>
+      </a>
       <div class="search">
         <input id="searchInput" type="search" placeholder="Search teams or events"
                autocomplete="off" spellcheck="false" aria-label="Search teams or events">
@@ -40,17 +71,19 @@
 
 <main id="view" class="view"></main>
 
-<footer class="ftr">
+<footer class="ftr" id="ftr">
   <div class="ftr-inner">
-    <span class="ftr-brand">Stream<span>East</span></span>
-    <span class="ftr-note">Live scores via ESPN · streams via third-party embeds</span>
+    <span class="ftr-brand">Mother<span>ship</span></span>
+    <span class="ftr-note">Live scores via ESPN · games via archive.org · streams via third-party embeds</span>
   </div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js"></script>
-<script src="js/mirrors.js?v=4"></script>
-<script src="js/data.js?v=4"></script>
-<script src="js/app.js?v=4"></script>
-<script src="js/player.js?v=4"></script>
+<script src="js/mirrors.js?v=7"></script>
+<script src="js/data.js?v=7"></script>
+<script src="js/hub.js?v=7"></script>
+<script src="js/gzme.js?v=7"></script>
+<script src="js/app.js?v=7"></script>
+<script src="js/player.js?v=7"></script>
 </body>
 </html>

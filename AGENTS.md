@@ -5,23 +5,30 @@ anything. The goal is that any agent can land a correct change without asking qu
 
 ## What this is
 
-A static sports-streaming frontend. No framework, no bundler, no build step, no npm
-dependencies at runtime. Open `index.html` through a local server and it runs.
+A static hub: **StreamEast** (sports) and **GZME** (browser games) behind one dock.
+No framework, no bundler, no build step, no npm dependencies at runtime. Open
+`index.html` through a local server and it runs.
 
 ```
-index.html            app shell, the only HTML file
-css/style.css         the entire design system
+index.html            shell: global nav, stream sub-header, #view, footer
+css/style.css         StreamEast design system
+css/mothership.css    hub + global nav tokens
+css/gzme.css          GZME console
 js/data.js            data layer: ESPN scores, stream resolver, local overrides
+js/hub.js             hub view (hero, dock, contact), avatar upgrade
+js/gzme.js            game catalog, shelves, launch overlay
 js/app.js             hash router, home view, cards, search, reveal
 js/player.js          watch view: HLS + iframe embeds, related list
 js/mirrors.js         array of mirror URLs
+assets/pfp.svg        fallback avatar
 serve.py              local static server, no-store headers
 scripts/check.mjs     CI: syntax, asset refs, stub markers
 ```
 
-Load order matters: `mirrors.js`, `data.js`, `app.js`, `player.js`. All four are classic
-scripts exposing globals (`window.SE_DATA`, `window.SE_APP`, `window.SE_PLAYER`). Do not
-convert them to ES modules without replacing the file:// support story.
+Load order matters: `mirrors.js`, `data.js`, `hub.js`, `gzme.js`, `app.js`,
+`player.js`. All are classic scripts exposing globals (`window.SE_DATA`,
+`window.SE_HUB`, `window.SE_GZME`, `window.SE_PLAYER`). Do not convert them to ES
+modules without replacing the `file://` support story.
 
 ## Invariants — do not break these
 
@@ -59,9 +66,20 @@ using existing tokens. Bind events through the `on()` helper in `player.js` so t
 stays correct; `destroy()` must leave nothing attached, playing, or polling.
 
 **Add a route**
-Routes are `#/`, `#/l/<league>`, `#/watch/<gameId>` and are parsed in `app.js#parseRoute`.
-Extend that function and `route()`. Call `SE_PLAYER.destroy()` on any route that is not a
-watch view.
+Routes are `#/` (hub), `#/stream`, `#/stream/l/<league>`,
+`#/stream/watch/<gameId>` and `#/gzme`, parsed in `app.js#parseRoute`. Extend that
+function and `route()`, and set `data-route` on `<body>` through `setRouteChrome` so
+CSS can show or hide the StreamEast sub-header. Call `SE_PLAYER.destroy()` and
+`SE_GZME.destroy()` on any route that is not their own view; both own timers and
+overlays that must not survive a route change.
+
+**Add a game to GZME**
+1. Verify the identifier: `https://archive.org/embed/<identifier>` must return 200 and
+   must not send `X-Frame-Options: DENY/SAMEORIGIN` or a `frame-ancestors` CSP.
+2. Add one entry to `GAMES` in `js/gzme.js`: `{ id, title, year, platform, genre, art }`.
+3. `genre` must be one of `ROWS`, otherwise the tile is unreachable.
+4. Never invent a title or point a tile at a search page. If there is no working
+   embed, it does not ship.
 
 ## Conventions
 
@@ -79,12 +97,16 @@ npm run check                     # syntax, missing assets, stub markers
 python serve.py --port 8080       # then open http://localhost:8080
 ```
 
-Manual smoke, all three must pass:
+Manual smoke, all must pass:
 
-1. Home renders cards with real team names and logos, no console errors.
-2. Clicking a card opens the watch view; sources list populates; a source plays or shows
+1. Hub renders hero, dock cards and contact; Discord chip opens `@1387`.
+2. Home renders cards with real team names and logos, no console errors.
+3. Clicking a card opens the watch view; sources list populates; a source plays or shows
    an explicit error with a retry.
-3. Back returns to home with the league filter intact.
+4. Back returns to home with the league filter intact, and the Mothership pill returns
+   to the hub.
+5. GZME renders 30 tiles; a tile launches its archive.org embed in the overlay; `Esc`
+   closes it and restores scroll.
 
 `npm run check` is what CI runs. If it fails locally it fails there.
 

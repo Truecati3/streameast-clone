@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Avatar">
+  <defs>
+    <radialGradient id="ink" cx="38%" cy="30%" r="78%">
+      <stop offset="0" stop-color="#2b3a63"/>
+      <stop offset="0.62" stop-color="#18213d"/>
+      <stop offset="1" stop-color="#0d1327"/>
+    </radialGradient>
+    <filter id="rough">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7"/>
+      <feDisplacementMap in="SourceGraphic" scale="4" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+  <rect width="128" height="128" fill="#efece4"/>
+  <g filter="url(#rough)">
+    <circle cx="64" cy="52" r="30" fill="url(#ink)" opacity="0.94"/>
+    <circle cx="92" cy="34" r="15" fill="url(#ink)" opacity="0.86"/>
+    <circle cx="36" cy="34" r="12" fill="url(#ink)" opacity="0.8"/>
+    <path d="M64 80c3 14 3 26 1 40" stroke="#18213d" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <circle cx="40" cy="96" r="13" fill="url(#ink)" opacity="0.72"/>
+  </g>
+  <text x="64" y="58" text-anchor="middle" font-family="Georgia, serif" font-size="17"
+        fill="#efece4" letter-spacing="1">1387</text>
+</svg>

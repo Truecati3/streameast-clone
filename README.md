@@ -1,6 +1,9 @@
-# StreamEast clone
+# Mothership
 
-Sports streaming frontend: live scoreboard, event cards, embedded players, related games.
+Two bays in one hull: **StreamEast** (live sports) and **GZME** (browser games).
+Static site, no framework, no bundler, no runtime dependencies.
+
+Live: https://truecati3.github.io/streameast-clone/
 
 ## Run
 
@@ -8,23 +11,36 @@ Sports streaming frontend: live scoreboard, event cards, embedded players, relat
 python serve.py --port 8080
 ```
 
-Open http://localhost:8080. A local server avoids file:// fetch restrictions.
+Open http://localhost:8080. A local server avoids `file://` fetch restrictions.
 
-## Data
+## Routes
+
+| Hash | View |
+| --- | --- |
+| `#/` | Mothership hub — hero, dock cards, contact |
+| `#/stream` | StreamEast home, all leagues |
+| `#/stream/l/<league>` | StreamEast filtered by league |
+| `#/stream/watch/<gameId>` | StreamEast watch view |
+| `#/gzme` | GZME console |
+
+Legacy `#/l/<league>` and `#/watch/<id>` redirect to their `#/stream/...` equivalents
+via `location.replace`, so old links keep working. Anything unrecognised falls back to
+the hub.
+
+The global nav (`#mnav`) is always mounted. The StreamEast sub-header only shows on
+stream routes, and carries an explicit back-to-Mothership pill.
+
+## StreamEast
 
 `js/data.js` pulls the public ESPN scoreboard API per league — real teams, real
 schedules, real scores, real team logos. No key, no proxy, CORS is open.
 
 Leagues live in `LEAGUES` (id, label, ESPN path). Add one line to add a league.
-
 Scores refresh every 60s on the home view and are cached for 45s.
-
-## Streams
 
 Per event, `js/data.js` queries the streamed.pk match API, fuzzy-matches the ESPN
 event by team name, then pulls per-source embed URLs. The player renders those in an
-iframe, which is the same model a StreamEast-style mirror uses: the site never hosts
-media, it embeds third-party players.
+iframe: the site never hosts media, it embeds third-party players.
 
 Fallback order:
 
@@ -35,30 +51,52 @@ Fallback order:
 **Test connection** on the watch page checks the match API and the player host and
 prints latency, so a dead player is distinguishable from a dead network.
 
-## Player
+`js/player.js` handles HLS.js for direct `.m3u8`, native HLS on Safari, quality
+selector, mute/volume, fullscreen, space/m/f hotkeys, auto-hiding controls, bounded
+network retries and server switching.
 
-HLS.js for direct `.m3u8`, native HLS on Safari, quality selector, mute/volume,
-fullscreen, space/m/f hotkeys, auto-hiding controls, bounded network retries,
-server switching.
+## GZME
 
-## Design system
+`js/gzme.js` is a console dashboard: hero title, shelf rows by genre, focus ring,
+controller hints, and a launch overlay.
 
-`css/style.css` is token-driven: surface ramp, single accent, 7/10/14/18 radii,
-three shadow levels, one easing curve (`--ease`) and three durations. Motion is
-CSS-only — card rise with stagger via `:nth-child`, hero drift, section reveal
-through IntersectionObserver, skeleton shimmer. `prefers-reduced-motion` disables
-all of it.
+Every entry is a real Internet Archive in-browser emulation, played through
+`https://archive.org/embed/<identifier>` in an iframe — 30 titles across DOS, NES,
+SNES, Genesis and Game Boy. Nothing in the catalog is invented; if a title has no
+working embed it does not ship. The overlay opens in place, `Esc` closes it, arrow
+keys walk the shelves, `Enter` launches the focused tile.
+
+Tiles use CSS gradient art rather than cover scans, so there is no third-party
+artwork in the repo and no broken image states.
+
+## Design
+
+`css/style.css` is the StreamEast token system. `css/mothership.css` is the hub:
+black field, serif display type, mono uppercase labels, one orange accent
+(`#ff4c25`), sticky nav that solidifies on scroll. `css/gzme.css` is the console:
+dark dashboard, gradient tiles, white focus ring, fixed controller bar.
+
+Motion is CSS-only — hero field drift, card rise, shelf reveal, launch fade.
+`prefers-reduced-motion` disables all of it.
 
 ## Files
 
 ```
-index.html                    shell
-css/style.css                 design system
+index.html                    shell: global nav, stream sub-header, #view, footer
+css/style.css                 StreamEast design system
+css/mothership.css            hub + global nav
+css/gzme.css                  GZME console
 js/data.js                    ESPN loader, stream resolver, overrides
-js/app.js                     routing, cards, search, reveal
+js/hub.js                     hub view, discord link, avatar upgrade
+js/gzme.js                    game catalog, shelves, launch overlay
+js/app.js                     router, cards, search, reveal
 js/player.js                  watch view, HLS/iframe, related
 js/mirrors.js                 mirror URL list
+assets/pfp.svg                fallback avatar
 serve.py                      local static server
 DOMAINS.md                    hosting + domain notes
 netlify.toml / vercel.json    deploy configs
 ```
+
+Drop a real photo at `assets/pfp.png` and `upgradePfp()` swaps it in everywhere the
+fallback mark is used — no markup change needed.
