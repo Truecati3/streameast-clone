@@ -60,11 +60,23 @@ network retries and server switching.
 `js/gzme.js` is a console dashboard: hero title, shelf rows by genre, focus ring,
 controller hints, and a launch overlay.
 
-Every entry is a real Internet Archive in-browser emulation, played through
-`https://archive.org/embed/<identifier>` in an iframe — 30 titles across DOS, NES,
-SNES, Genesis and Game Boy. Nothing in the catalog is invented; if a title has no
-working embed it does not ship. The overlay opens in place, `Esc` closes it, arrow
-keys walk the shelves, `Enter` launches the focused tile.
+Two shelves feed it:
+
+- **Ports** — real browser ports of full games (Black Ops Zombies, Halo CE, Quake II/III,
+  RTCW, Urban Terror, PES 6, Simpsons Hit & Run, Surfd, GTA Vice City, Skate Rust,
+  Minecraft). Each URL is verified live before it ships. Entries whose host sends
+  `X-Frame-Options` or `frame-ancestors` are marked `mode: "link"` and open in a tab;
+  everything else plays in the overlay.
+- **Archive** — Internet Archive in-browser emulations played through
+  `https://archive.org/embed/<identifier>`, 30 titles across DOS, NES, SNES, Genesis
+  and Game Boy.
+
+Nothing in the catalog is invented. If a port goes down (DMCA, dead TLS, 404) it comes
+out of the array rather than sitting there as a dead tile.
+
+The overlay opens in place, grabs fullscreen, `F` toggles fullscreen, `Esc` leaves
+fullscreen then closes the overlay. Arrow keys walk the shelves, `Enter` launches the
+focused tile.
 
 Tiles use CSS gradient art rather than cover scans, so there is no third-party
 artwork in the repo and no broken image states.

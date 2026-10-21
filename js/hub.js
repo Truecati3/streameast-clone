@@ -68,11 +68,11 @@ window.SE_HUB = (function () {
       "</div></a>" +
 
       '<a class="dock-card dock-card--gzme" href="#/gzme">' +
-      '<div class="dock-head"><span>Bay 02</span><span class="dock-pill">30 titles</span></div>' +
+      '<div class="dock-head"><span>Bay 02</span><span class="dock-pill">43 titles</span></div>' +
       '<div class="dock-body">' +
       '<h2 class="dock-name">GZME</h2>' +
-      '<p class="dock-desc">Browser console. Doom, Quake, Mortal Kombat, ' +
-      "Monkey Island and more — launched in place.</p>" +
+      '<p class="dock-desc">Browser console. Black Ops Zombies, Halo, Quake III, ' +
+      "Monkey Island and more — launched fullscreen in place.</p>" +
       '<span class="dock-go"><i></i>Enter bay</span>' +
       "</div></a>" +
 

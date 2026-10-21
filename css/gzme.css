@@ -439,11 +439,11 @@
   white-space: nowrap;
 }
 
+.gz-launch__fs,
 .gz-launch__exit {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-left: auto;
   padding: 7px 14px;
   border: 1px solid var(--g-line);
   border-radius: 999px;
@@ -456,9 +456,20 @@
   text-transform: uppercase;
   transition: background 0.2s var(--g-ease), border-color 0.2s var(--g-ease);
 }
+
+.gz-launch__fs {
+  margin-left: auto;
+}
+
+.gz-launch__fs:hover,
 .gz-launch__exit:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.4);
+}
+
+.gz-launch:fullscreen {
+  width: 100vw;
+  height: 100vh;
 }
 
 .gz-launch__frame {

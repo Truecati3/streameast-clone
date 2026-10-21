@@ -5,6 +5,25 @@ window.SE_GZME = (function () {
 
   const EMBED = "https://archive.org/embed/";
 
+  /* Browser ports, verified live at build time: HTTP 200 and no framing block.
+     "link" entries ship an X-Frame-Options/CSP block, so they open in a tab. */
+  const PORTS = [
+    { id: "port-bo1", title: "Black Ops: Zombies", year: 2010, platform: "Web", genre: "Ports", mode: "embed", url: "https://vel.gg/bolz", art: ["#6b1a1a", "#160505"] },
+    { id: "port-gta-vc", title: "GTA: Vice City", year: 2002, platform: "Web", genre: "Ports", mode: "embed", url: "https://joncodeofficial.github.io/gta-vice-city-wasm/", art: ["#7a1f4a", "#1a0512"], note: "bring your own game files" },
+    { id: "port-halo", title: "Halo: Combat Evolved", year: 2001, platform: "Web", genre: "Ports", mode: "embed", url: "https://mitchellhynes.com/halo", art: ["#1f4a5a", "#06121a"] },
+    { id: "port-halo-mobile", title: "Halo CE — Mobile", year: 2001, platform: "Web", genre: "Ports", mode: "embed", url: "https://hcemobile.com", art: ["#2a4a6b", "#08131c"] },
+    { id: "port-simpsons", title: "The Simpsons: Hit & Run", year: 2003, platform: "Web", genre: "Ports", mode: "embed", url: "https://shar-wasm.cjoseph.workers.dev", art: ["#6b5a0f", "#161304"] },
+    { id: "port-pes6", title: "Pro Evolution Soccer 6", year: 2006, platform: "Web", genre: "Ports", mode: "embed", url: "https://pes6.optijuegos.net", art: ["#1f5a2a", "#04120a"] },
+    { id: "port-surf", title: "Surfd — CS Surf", year: 2024, platform: "Web", genre: "Ports", mode: "embed", url: "https://surfd.net", art: ["#2a5a6b", "#08161c"] },
+    { id: "port-q2", title: "Quake II", year: 1997, platform: "Web", genre: "Ports", mode: "embed", url: "https://q2.pieter.com", art: ["#5c3a1e", "#0b0805"] },
+    { id: "port-q3", title: "Quake III Arena", year: 1999, platform: "Web", genre: "Ports", mode: "embed", url: "https://q3.pieter.com", art: ["#6b2a10", "#160803"] },
+    { id: "port-rtcw", title: "Return to Castle Wolfenstein", year: 2001, platform: "Web", genre: "Ports", mode: "embed", url: "https://rtcw.pieter.com", art: ["#3a3a4a", "#0b0b10"] },
+    { id: "port-urban-terror", title: "Urban Terror", year: 2000, platform: "Web", genre: "Ports", mode: "embed", url: "https://ut.pieter.com", art: ["#4a3a1a", "#120d04"] },
+    { id: "port-skate-rust", title: "Skate Rust", year: 2025, platform: "Web", genre: "Ports", mode: "link", url: "https://global-terror.net", art: ["#5a2a1a", "#140804"] },
+    { id: "port-minecraft", title: "Minecraft", year: 2011, platform: "Web", genre: "Ports", mode: "link", url: "https://wasmarcade.com/minecraft", art: ["#2a5a1f", "#081206"] }
+  ];
+
+
   /* art: two-stop gradient used as the tile artwork. */
   const GAMES = [
     { id: "doomII", title: "Doom II", year: 1994, platform: "DOS", genre: "Shooters", art: ["#8f2410", "#260604"] },
@@ -44,8 +63,16 @@ window.SE_GZME = (function () {
     { id: "OREDX_VGA", title: "The Oregon Trail Deluxe", year: 1992, platform: "DOS", genre: "Classics", art: ["#6b5a1a", "#161304"] }
   ];
 
-  const ROWS = ["Shooters", "Fighters", "Adventure", "Strategy", "Console", "Classics"];
-  const FEATURED = ["doomII", "QUAKE_201806", "msdos_Mortal_Kombat_1993", "warcraft-2", "Super_Mario_Bros_OK"];
+  const ROWS = ["Ports", "Shooters", "Fighters", "Adventure", "Strategy", "Console", "Classics"];
+  const FEATURED = "port-bo1";
+
+  function all() {
+    return PORTS.concat(GAMES);
+  }
+
+  function byId(id) {
+    return all().find(function (g) { return g.id === id; });
+  }
 
   let launchEl = null;
   let tiles = [];
@@ -64,33 +91,38 @@ window.SE_GZME = (function () {
   }
 
   function url(g) {
-    return EMBED + g.id;
+    return g.url ? g.url : EMBED + g.id;
   }
 
   function tile(g) {
+    const link = g.mode === "link";
     return (
       '<button class="gz-tile" data-game="' + esc(g.id) + '" style="--art:' + art(g) + '"' +
       ' aria-label="Play ' + esc(g.title) + '">' +
-      '<span class="gz-tile__badge">' + esc(g.platform) + "</span>" +
+      '<span class="gz-tile__badge">' + esc(g.platform) + (link ? " ↗" : "") + "</span>" +
       '<span class="gz-tile__name">' + esc(g.title) + "</span>" +
-      '<span class="gz-tile__sub">' + g.year + " · " + esc(g.genre) + "</span>" +
+      '<span class="gz-tile__sub">' + g.year + " · " +
+      (link ? "opens in tab" : g.note ? esc(g.note) : g.genre === "Ports" ? "runs in frame" : esc(g.genre)) +
+      "</span>" +
       "</button>"
     );
   }
 
   function hero() {
-    const g = GAMES.find(function (x) { return x.id === FEATURED[0]; });
+    const g = byId(FEATURED);
+    const link = g.mode === "link";
     return (
       '<section class="gz-hero">' +
       '<div class="gz-hero__art" style="--art:' + art(g) + '"></div>' +
       '<div class="gz-hero__body">' +
-      '<span class="gz-eyebrow"><b>Play now</b> No install · runs in the frame</span>' +
+      '<span class="gz-eyebrow"><b>Play now</b> ' +
+      (link ? "Opens in a new tab" : "No install · runs in the frame") + "</span>" +
       '<h1 class="gz-hero__title">' + esc(g.title) + "</h1>" +
       '<div class="gz-hero__meta">' +
       "<span>" + g.year + "</span><span class=\"sep\"></span>" +
       "<span>" + esc(g.platform) + "</span><span class=\"sep\"></span>" +
       "<span>" + esc(g.genre) + "</span><span class=\"sep\"></span>" +
-      "<span>" + GAMES.length + " titles docked</span>" +
+      "<span>" + all().length + " titles docked</span>" +
       "</div>" +
       '<button class="gz-play" data-game="' + esc(g.id) + '">' +
       '<span class="glyph">✕</span> Play</button>' +
@@ -99,7 +131,7 @@ window.SE_GZME = (function () {
   }
 
   function row(name) {
-    const list = GAMES.filter(function (g) { return g.genre === name; });
+    const list = all().filter(function (g) { return g.genre === name; });
     if (!list.length) return "";
     return (
       '<section class="gz-row">' +
@@ -118,6 +150,7 @@ window.SE_GZME = (function () {
       '<span class="gz-hint"><span class="glyph">✕</span> Play</span>' +
       '<span class="gz-hint"><span class="glyph">○</span> Back</span>' +
       '<span class="gz-hint"><span class="glyph">←→</span> Browse</span>' +
+      '<span class="gz-hint"><span class="glyph">F</span> Fullscreen</span>' +
       '<span class="gz-hint"><span class="glyph">esc</span> Exit</span>' +
       '<span class="gz-bar__spacer"></span>' +
       '<span class="gz-bar__status">Archive.org emulation · keyboard + gamepad</span>' +
@@ -184,6 +217,13 @@ window.SE_GZME = (function () {
 
   function launch(game) {
     if (!game) return;
+
+    /* Sites that send X-Frame-Options or frame-ancestors can't be framed. */
+    if (game.mode === "link") {
+      window.open(game.url, "_blank", "noopener");
+      return;
+    }
+
     closeLaunch();
 
     launchEl = document.createElement("div");
@@ -192,13 +232,15 @@ window.SE_GZME = (function () {
       '<div class="gz-launch__bar">' +
       '<span class="gz-launch__title">' + esc(game.title) + "</span>" +
       '<span class="gz-launch__meta">' + game.year + " · " + esc(game.platform) + "</span>" +
+      '<button class="gz-launch__fs" type="button" title="Toggle fullscreen (F)">' +
+      '<span class="glyph">F</span> Fullscreen</button>' +
       '<button class="gz-launch__exit" type="button"><span class="glyph">esc</span> Exit</button>' +
       "</div>" +
       '<div class="gz-launch__frame"><iframe title="' + esc(game.title) + '" ' +
       'src="' + esc(url(game)) + '" allow="autoplay; fullscreen; gamepad" ' +
-      'referrerpolicy="origin"></iframe></div>' +
+      'referrerpolicy="origin" allowfullscreen></iframe></div>' +
       '<div class="gz-launch__note">Click the frame once to give it focus. ' +
-      "Sound comes from the emulator, not this page.</div>";
+      "F toggles fullscreen · Esc exits. Sound comes from the game, not this page.</div>";
 
     document.body.appendChild(launchEl);
     document.body.style.overflow = "hidden";
@@ -206,10 +248,36 @@ window.SE_GZME = (function () {
     launchEl
       .querySelector(".gz-launch__exit")
       .addEventListener("click", closeLaunch);
+    launchEl
+      .querySelector(".gz-launch__fs")
+      .addEventListener("click", toggleFullscreen);
+
+    /* The click that opened the overlay is the gesture; grab the screen. */
+    requestFullscreen(launchEl);
+  }
+
+  function requestFullscreen(el) {
+    if (!el || !el.requestFullscreen) return;
+    const p = el.requestFullscreen({ navigationUI: "hide" });
+    if (p && p.catch) p.catch(function () {});
+  }
+
+  function toggleFullscreen() {
+    if (!launchEl) return;
+    if (document.fullscreenElement) {
+      const p = document.exitFullscreen();
+      if (p && p.catch) p.catch(function () {});
+      return;
+    }
+    requestFullscreen(launchEl);
   }
 
   function closeLaunch() {
     if (!launchEl) return;
+    if (document.fullscreenElement) {
+      const p = document.exitFullscreen();
+      if (p && p.catch) p.catch(function () {});
+    }
     launchEl.remove();
     launchEl = null;
     document.body.style.overflow = "";
@@ -230,10 +298,7 @@ window.SE_GZME = (function () {
       if (!document.querySelector(".gzme")) return;
       const el = e.target.closest("[data-game]");
       if (!el) return;
-      const game = GAMES.find(function (g) {
-        return g.id === el.getAttribute("data-game");
-      });
-      launch(game);
+      launch(byId(el.getAttribute("data-game")));
     });
 
     document.addEventListener("focusin", function (e) {
@@ -251,15 +316,23 @@ window.SE_GZME = (function () {
     document.addEventListener("keydown", function (e) {
       if (!document.querySelector(".gzme")) return;
 
-      if (e.key === "Escape") {
-        if (launchEl) {
+      if (launchEl) {
+        if (e.key === "Escape") {
+          /* The browser eats the first Esc to leave fullscreen; the next one exits. */
+          if (!document.fullscreenElement) {
+            e.preventDefault();
+            closeLaunch();
+          }
+          return;
+        }
+        if (e.key === "f" || e.key === "F") {
           e.preventDefault();
-          closeLaunch();
+          toggleFullscreen();
         }
         return;
       }
 
-      if (launchEl) return;
+      if (e.key === "Escape") return;
 
       if (e.key === "ArrowRight") {
         e.preventDefault();

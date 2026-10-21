@@ -74,12 +74,19 @@ CSS can show or hide the StreamEast sub-header. Call `SE_PLAYER.destroy()` and
 overlays that must not survive a route change.
 
 **Add a game to GZME**
-1. Verify the identifier: `https://archive.org/embed/<identifier>` must return 200 and
-   must not send `X-Frame-Options: DENY/SAMEORIGIN` or a `frame-ancestors` CSP.
-2. Add one entry to `GAMES` in `js/gzme.js`: `{ id, title, year, platform, genre, art }`.
-3. `genre` must be one of `ROWS`, otherwise the tile is unreachable.
-4. Never invent a title or point a tile at a search page. If there is no working
-   embed, it does not ship.
+Two sources, one shape:
+
+1. **Browser port** — open the URL, confirm it actually plays (a 200 can still be a
+   DMCA notice). If the host sends `X-Frame-Options: DENY/SAMEORIGIN` or
+   `frame-ancestors`, set `mode: "link"` so it opens in a tab; otherwise leave
+   `mode: "embed"`.
+2. **Archive emulation** — `https://archive.org/embed/<identifier>` must return 200 and
+   must not block framing.
+
+Then add one entry to `PORTS` or `GAMES` in `js/gzme.js`:
+`{ id, title, year, platform, genre, art }` (plus `url`/`mode` for ports). `genre` must
+be one of `ROWS`, otherwise the tile is unreachable. Never invent a title and never
+leave a dead tile in the array — verify, then ship.
 
 ## Conventions
 
@@ -105,8 +112,8 @@ Manual smoke, all must pass:
    an explicit error with a retry.
 4. Back returns to home with the league filter intact, and the Mothership pill returns
    to the hub.
-5. GZME renders 30 tiles; a tile launches its archive.org embed in the overlay; `Esc`
-   closes it and restores scroll.
+5. GZME renders the Ports shelf plus the archive shelves; a tile launches in the
+   fullscreen overlay; `F` toggles fullscreen, `Esc` leaves it and then closes.
 
 `npm run check` is what CI runs. If it fails locally it fails there.
 
