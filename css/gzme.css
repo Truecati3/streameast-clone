@@ -223,7 +223,6 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  width: max-content;
   padding: 28px max((100vw - min(100vw, 1240px)) / 2, 24px);
   margin: 0 auto;
   overflow-x: auto;

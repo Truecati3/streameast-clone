@@ -12,9 +12,9 @@ window.SE_GZME = (function () {
      in assets/art for hosts that ship no og:image. */
   const PORTS = [
     { id: "port-bo1", title: "Black Ops: Zombies", year: 2010, platform: "Web", genre: "Ports", mode: "embed", url: "https://vel.gg/bolz", art: ["#6b1a1a", "#160505"], cover: "assets/art/port-bo1.jpg" },
-    { id: "port-gta-vc", title: "GTA: Vice City", year: 2002, platform: "Web", genre: "Ports", mode: "embed", url: "https://joncodeofficial.github.io/gta-vice-city-wasm/", art: ["#7a1f4a", "#1a0512"], note: "bring your own game files", cover: "assets/art/gta-vc.jpg" },
-    { id: "port-halo", title: "Halo: Combat Evolved", year: 2001, platform: "Web", genre: "Ports", mode: "embed", url: "https://mitchellhynes.com/halo", art: ["#1f4a5a", "#06121a"], note: "bring your own disc (XISO)", cover: "assets/art/halo.jpg" },
-    { id: "port-halo-mobile", title: "Halo CE — Mobile", year: 2001, platform: "Web", genre: "Ports", mode: "embed", url: "https://hcemobile.com", art: ["#2a4a6b", "#08131c"], cover: "assets/art/halo-mobile.jpg" },
+    { id: "port-gta-vc", title: "GTA: Vice City", year: 2002, platform: "Web", genre: "Ports", mode: "embed", url: "https://joncodeofficial.github.io/gta-vice-city-wasm/", art: ["#7a1f4a", "#1a0512"], note: "bring your own game files", cover: "https://joncodeofficial.github.io/gta-vice-city-wasm/cover.png" },
+    { id: "port-halo", title: "Halo: Combat Evolved", year: 2001, platform: "Web", genre: "Ports", mode: "embed", url: "https://mitchellhynes.com/halo", art: ["#1f4a5a", "#06121a"], note: "bring your own disc (XISO)", cover: "https://halo.wiki.gallery/images/6/6a/Halo_Combat_Evolved_cover.png" },
+    { id: "port-halo-mobile", title: "Halo CE — Mobile", year: 2001, platform: "Web", genre: "Ports", mode: "embed", url: "https://hcemobile.com", art: ["#2a4a6b", "#08131c"], cover: "https://hcemobile.com/icons/icon-180.png?h=e05eb6fdb3" },
     { id: "port-simpsons", title: "The Simpsons: Hit & Run", year: 2003, platform: "Web", genre: "Ports", mode: "embed", url: "https://shar-wasm.cjoseph.workers.dev", art: ["#6b5a0f", "#161304"], note: "click Play to boot", cover: "assets/art/simpsons.jpg" },
     { id: "port-pes6", title: "Pro Evolution Soccer 6", year: 2006, platform: "Web", genre: "Ports", mode: "embed", url: "https://pes6.optijuegos.net", art: ["#1f5a2a", "#04120a"], cover: "https://pes6.optijuegos.net/assets/logo.png" },
     { id: "port-surf", title: "Surfd — CS Surf", year: 2024, platform: "Web", genre: "Ports", mode: "embed", url: "https://surfd.net", art: ["#2a5a6b", "#08161c"], cover: "https://surfd.net/social/surfd-card-v2.png" },
@@ -22,7 +22,7 @@ window.SE_GZME = (function () {
     { id: "port-q3", title: "Quake III Arena", year: 1999, platform: "Web", genre: "Ports", mode: "embed", url: "https://q3.pieter.com", art: ["#6b2a10", "#160803"], cover: "https://q3.pieter.com/assets/og.jpg" },
     { id: "port-rtcw", title: "Return to Castle Wolfenstein", year: 2001, platform: "Web", genre: "Ports", mode: "embed", url: "https://rtcw.pieter.com", art: ["#3a3a4a", "#0b0b10"], cover: "https://rtcw.pieter.com/assets/og.jpg?v=1" },
     { id: "port-urban-terror", title: "Urban Terror", year: 2000, platform: "Web", genre: "Ports", mode: "embed", url: "https://ut.pieter.com", art: ["#4a3a1a", "#120d04"], cover: "https://ut.pieter.com/assets/og.jpg?v=1" },
-    { id: "port-skate-rust", title: "Skate Rust", year: 2025, platform: "Web", genre: "Ports", mode: "link", url: "https://global-terror.net", art: ["#5a2a1a", "#140804"], cover: "assets/art/skate-rust.jpg" },
+    { id: "port-skate-rust", title: "Skate Rust", year: 2025, platform: "Web", genre: "Ports", mode: "link", url: "https://global-terror.net", art: ["#5a2a1a", "#140804"], cover: "https://global-terror.net/cdn/shop/t/160/assets/terror-device.webp?v=123452014896430388601791866105" },
     { id: "port-minecraft", title: "Minecraft", year: 2011, platform: "Web", genre: "Ports", mode: "link", url: "https://wasmarcade.com/minecraft", art: ["#2a5a1f", "#081206"], cover: "https://wasmarcade.com/og/minecraft.jpg" }
   ];
 
@@ -230,6 +230,8 @@ window.SE_GZME = (function () {
 
   let clockTimer = null;
   let bgFlip = false;
+  let scrollRaf = 0;
+  let syncHoldUntil = 0;
 
   /* Full-bleed key art behind everything: gradient base on the root, two img
      layers crossfading on top. Fails silent — a dead cover leaves the gradient. */
@@ -255,6 +257,30 @@ window.SE_GZME = (function () {
     if (stat) stat.textContent = status(g);
     const play = document.getElementById("gzPlay");
     if (play) play.setAttribute("data-game", g.id);
+  }
+
+  /* The tile nearest the viewport centre owns the ring and the key art.
+     Held off while keyboard nav smooth-scrolls so focus flicker-free. */
+  function syncFocusToScroll() {
+    const row = document.querySelector(".gz-tiles");
+    if (!row || !tiles.length) return;
+    if (Date.now() < syncHoldUntil) return;
+    const mid = row.getBoundingClientRect().left + row.clientWidth / 2;
+    let best = -1;
+    let bestDist = Infinity;
+    tiles.forEach(function (t, i) {
+      const r = t.getBoundingClientRect();
+      const d = Math.abs(r.left + r.width / 2 - mid);
+      if (d < bestDist) {
+        bestDist = d;
+        best = i;
+      }
+    });
+    if (best < 0 || best === focusIndex) return;
+    tiles[focusIndex].classList.remove("focused");
+    focusIndex = best;
+    tiles[best].classList.add("focused");
+    setHero(byId(tiles[best].getAttribute("data-game")));
   }
 
   function tick() {
@@ -315,6 +341,7 @@ window.SE_GZME = (function () {
   function focusTile(i) {
     if (!tiles.length) return;
     focusIndex = (i + tiles.length) % tiles.length;
+    syncHoldUntil = Date.now() + 700;
     tiles.forEach(function (t) { t.classList.remove("focused"); });
     const el = tiles[focusIndex];
     el.classList.add("focused");
@@ -404,6 +431,27 @@ window.SE_GZME = (function () {
   function initDelegation() {
     if (delegationReady) return;
     delegationReady = true;
+
+    /* Vertical wheel over the row drives it horizontally. */
+    document.addEventListener("wheel", function (e) {
+      if (!document.querySelector(".gzme") || !tiles.length) return;
+      const row = document.querySelector(".gz-tiles");
+      if (!row) return;
+      const r = row.getBoundingClientRect();
+      if (e.clientX < r.left || e.clientX > r.right) return;
+      if (e.clientY < r.top || e.clientY > r.bottom) return;
+      e.preventDefault();
+      const d = e.deltaMode === 1 ? (e.deltaY || e.deltaX) * 40 : (e.deltaY || e.deltaX);
+      row.scrollBy({ left: d, behavior: "auto" });
+    }, { passive: false });
+
+    /* Scrolling keeps the centered tile focused so the art follows the view. */
+    document.addEventListener("scroll", function (e) {
+      if (!document.querySelector(".gzme")) return;
+      if (e.target !== document.querySelector(".gz-tiles")) return;
+      cancelAnimationFrame(scrollRaf);
+      scrollRaf = requestAnimationFrame(syncFocusToScroll);
+    }, true);
 
     document.addEventListener("click", function (e) {
       if (!document.querySelector(".gzme")) return;
