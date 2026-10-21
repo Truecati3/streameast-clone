@@ -88,6 +88,75 @@ window.SE_GZME = (function () {
     });
   }
 
+  /* ---------- audio: synthesized console bleeps, no asset files ---------- */
+
+  let soundOn = true;
+  let soundCtx = null;
+  let booted = false;
+
+  function audioCtx() {
+    if (!soundOn) return null;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    if (!soundCtx) soundCtx = new AC();
+    if (soundCtx.state === "suspended") soundCtx.resume();
+    return soundCtx;
+  }
+
+  function tone(freq, start, dur, opts) {
+    const c = audioCtx();
+    if (!c) return;
+    opts = opts || {};
+    const o = c.createOscillator();
+    const v = c.createGain();
+    o.type = opts.type || "sine";
+    o.frequency.setValueAtTime(freq, c.currentTime + start);
+    if (opts.to) o.frequency.exponentialRampToValueAtTime(opts.to, c.currentTime + start + dur);
+    v.gain.setValueAtTime(0.0001, c.currentTime + start);
+    v.gain.exponentialRampToValueAtTime(opts.vol || 0.05, c.currentTime + start + 0.012);
+    v.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + start + dur);
+    o.connect(v);
+    v.connect(c.destination);
+    o.start(c.currentTime + start);
+    o.stop(c.currentTime + start + dur + 0.05);
+  }
+
+  /* The first menu walk also carries the boot sweep: one whoosh per visit. */
+  function sound(kind) {
+    if (!soundOn) return;
+    if (kind === "move") {
+      if (!booted) {
+        booted = true;
+        tone(220, 0, 0.55, { vol: 0.028, to: 1150, type: "triangle" });
+        tone(660, 0.34, 0.4, { vol: 0.035 });
+        tone(990, 0.46, 0.65, { vol: 0.04 });
+        return;
+      }
+      tone(2100, 0, 0.045, { vol: 0.03 });
+      tone(2600, 0.03, 0.035, { vol: 0.02 });
+    } else if (kind === "select") {
+      tone(880, 0, 0.16, { type: "triangle", vol: 0.045 });
+      tone(1320, 0.07, 0.24, { vol: 0.04 });
+    } else if (kind === "back") {
+      tone(240, 0, 0.12, { type: "triangle", vol: 0.05, to: 170 });
+    }
+  }
+
+  function toggleSound() {
+    soundOn = !soundOn;
+    if (!soundOn && soundCtx) soundCtx.suspend();
+    const btn = document.getElementById("gzSound");
+    if (btn) btn.innerHTML = soundOn ? svgIcon("speaker") : svgIcon("muted");
+  }
+
+  function svgIcon(name) {
+    if (name === "speaker") {
+      return '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>';
+    }
+    return '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16 9 5 6"/><path d="m21 9-5 6"/></svg>';
+  }
+
+
   function art(g) {
     return (
       "linear-gradient(135deg," + g.art[0] + " 0%," + g.art[1] + " 100%)"
@@ -110,11 +179,11 @@ window.SE_GZME = (function () {
     return g.url ? g.url : EMBED + g.id;
   }
 
-  function tile(g) {
+  function tile(g, i) {
     const link = g.mode === "link";
     return (
-      '<button class="gz-tile" data-game="' + esc(g.id) + '" style="--art:' + art(g) + '"' +
-      ' aria-label="Play ' + esc(g.title) + '">' +
+      '<button class="gz-tile" data-game="' + esc(g.id) + '" style="--art:' + art(g) + ";--i:" + i +
+      '" aria-label="Play ' + esc(g.title) + '">' +
       '<img class="gz-tile__art" src="' + esc(cover(g)) + '" alt="" loading="lazy" decoding="async"' +
       ' onerror="this.classList.add(\'is-off\')">' +
       '<span class="gz-tile__badge">' + esc(g.platform) + (link ? " ↗" : "") + "</span>" +
@@ -125,7 +194,7 @@ window.SE_GZME = (function () {
   function nowPanel(g) {
     return (
       '<section class="gz-now">' +
-      '<span class="gz-now__eyebrow"><b>Focused</b><span id="gzStatus">' + esc(status(g)) + "</span></span>" +
+      '<span class="gz-now__chip" id="gzStatus">' + esc(status(g)) + "</span>" +
       '<h1 class="gz-now__title" id="gzTitle">' + esc(g.title) + "</h1>" +
       '<div class="gz-now__meta" id="gzMeta">' +
       g.year + " · " + esc(g.platform) + " · " + esc(g.genre) +
@@ -133,25 +202,28 @@ window.SE_GZME = (function () {
       "</div>" +
       '<div class="gz-now__actions">' +
       '<button class="gz-play" id="gzPlay" data-game="' + esc(g.id) + '">' +
-      '<span class="glyph">✕</span> Play</button>' +
-      '<span class="gz-now__hint"><span class="glyph">F</span> Fullscreen once it boots</span>' +
+      "<span>Play</span>" +
+      '<span class="glyph">✕</span></button>' +
+      '<span class="gz-now__hint"><span class="glyph">F</span> Fullscreen</span>' +
       "</div></section>"
     );
   }
 
   function shelf() {
-    return '<div class="gz-tiles">' + all().map(tile).join("") + "</div>";
+    return (
+      '<div class="gz-tiles">' +
+      all().map(function (g, i) { return tile(g, i); }).join("") +
+      "</div>"
+    );
   }
 
   function bar() {
     return (
       '<div class="gz-bar">' +
       '<span class="gz-hint"><span class="glyph">✕</span> Play</span>' +
-      '<span class="gz-hint"><span class="glyph">←→</span> Browse</span>' +
+      '<span class="gz-hint"><span class="glyph">←→</span> Arrow keys to browse</span>' +
       '<span class="gz-hint"><span class="glyph">F</span> Fullscreen</span>' +
       '<span class="gz-hint"><span class="glyph">esc</span> Exit</span>' +
-      '<span class="gz-bar__spacer"></span>' +
-      '<span class="gz-bar__status">Keyboard + gamepad</span>' +
       "</div>"
     );
   }
@@ -210,12 +282,15 @@ window.SE_GZME = (function () {
     view.innerHTML =
       '<div class="gzme">' +
       '<div class="gz-bg"><img id="gzBgA" alt=""><img id="gzBgB" alt=""></div>' +
+      '<div class="gz-bokeh"><i></i><i></i></div>' +
       '<div class="gz-top">' +
       '<span class="gz-logo"><i></i>GZME</span>' +
       '<span class="gz-count">' + all().length + " titles</span>" +
       '<div class="gz-top__meta">' +
-      '<span class="gz-user"><img data-pfp src="assets/pfp.svg" alt=""><span>@1387</span></span>' +
+      '<button class="gz-icon" id="gzSound" type="button" aria-label="Toggle menu sound" title="Menu sound">' +
+      svgIcon("speaker") + "</button>" +
       '<span class="gz-clock" id="gzClock"></span>' +
+      '<span class="gz-user"><img data-pfp src="assets/pfp.svg" alt=""><span>@1387</span></span>' +
       "</div></div>" +
       '<div class="gz-home">' +
       '<div class="gz-tiles-wrap">' + shelf() + "</div>" +
@@ -226,6 +301,7 @@ window.SE_GZME = (function () {
 
     tiles = Array.prototype.slice.call(view.querySelectorAll(".gz-tile"));
     focusIndex = 0;
+    booted = false;
     if (tiles[0]) tiles[0].classList.add("focused");
     setHero(byId(FEATURED));
     startClock();
@@ -245,10 +321,12 @@ window.SE_GZME = (function () {
     el.focus({ preventScroll: true });
     el.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
     setHero(byId(el.getAttribute("data-game")));
+    sound("move");
   }
 
   function launch(game) {
     if (!game) return;
+    sound("select");
 
     /* Sites that send X-Frame-Options or frame-ancestors can't be framed. */
     if (game.mode === "link") {
@@ -256,7 +334,7 @@ window.SE_GZME = (function () {
       return;
     }
 
-    closeLaunch();
+    closeLaunch(true);
 
     launchEl = document.createElement("div");
     launchEl.className = "gz-launch";
@@ -304,8 +382,9 @@ window.SE_GZME = (function () {
     requestFullscreen(launchEl);
   }
 
-  function closeLaunch() {
+  function closeLaunch(silent) {
     if (!launchEl) return;
+    if (!silent) sound("back");
     if (document.fullscreenElement) {
       const p = document.exitFullscreen();
       if (p && p.catch) p.catch(function () {});
@@ -328,6 +407,13 @@ window.SE_GZME = (function () {
 
     document.addEventListener("click", function (e) {
       if (!document.querySelector(".gzme")) return;
+
+      const snd = e.target.closest("#gzSound");
+      if (snd) {
+        toggleSound();
+        return;
+      }
+
       const el = e.target.closest("[data-game]");
       if (!el) return;
       launch(byId(el.getAttribute("data-game")));
