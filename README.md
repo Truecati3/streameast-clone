@@ -1,6 +1,6 @@
 # StreamEast clone
 
-Sports streaming frontend: live scoreboard, event cards, embedded players, chat.
+Sports streaming frontend: live scoreboard, event cards, embedded players, related games.
 
 ## Run
 
@@ -56,7 +56,7 @@ index.html                    shell
 css/style.css                 design system
 js/data.js                    ESPN loader, stream resolver, overrides
 js/app.js                     routing, cards, search, reveal
-js/player.js                  watch view, HLS/iframe, chat, related
+js/player.js                  watch view, HLS/iframe, related
 js/mirrors.js                 mirror URL list
 serve.py                      local static server
 DOMAINS.md                    hosting + domain notes

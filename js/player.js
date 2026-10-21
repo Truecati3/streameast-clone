@@ -1,4 +1,4 @@
-/* StreamEast clone — watch view, HLS player, chat, related. */
+/* StreamEast clone — watch view, HLS player, related. */
 window.SE_PLAYER = (function () {
   "use strict";
 
@@ -11,7 +11,6 @@ window.SE_PLAYER = (function () {
   let sources = [];
   let sourceIndex = 0;
   let idleTimer = null;
-  let chatTimer = null;
   let bound = [];
   let networkRetries = 0;
 
@@ -199,17 +198,8 @@ window.SE_PLAYER = (function () {
       "</div>" +
 
       '<aside class="watch-side">' +
-      '<div class="side-tabs">' +
-      '<button class="active" data-tab="chat">Chat</button>' +
-      '<button data-tab="games">Games</button>' +
-      "</div>" +
-      '<div class="side-panel active" id="panelChat">' +
-      '<div class="chat-log" id="chatLog"></div>' +
-      '<form class="chat-form" id="chatForm">' +
-      '<input id="chatInput" type="text" maxlength="240" placeholder="Say something…" autocomplete="off" aria-label="Chat message">' +
-      '<button type="submit">Send</button>' +
-      "</form></div>" +
-      '<div class="side-panel" id="panelGames">' +
+      '<div class="side-head">More games</div>' +
+      '<div class="side-panel active" id="panelGames">' +
       '<div class="related-list">' +
       relatedHTML(game) +
       "</div></div>" +
@@ -220,8 +210,6 @@ window.SE_PLAYER = (function () {
 
     renderSources();
     wireControls();
-    wireChat();
-    wireTabs();
     wake();
     startSources();
   }
@@ -684,130 +672,11 @@ window.SE_PLAYER = (function () {
 
   /* ---------- sidebar ---------- */
 
-  const CHAT_USERS = [
-    "hoopsjunkie", "westside11", "couchcoach", "tatersalad", "dmv_tony",
-    "lakeshow", "frontrow_kat", "sunday_irish", "rooftopkid", "bigplayray",
-    "shotclock", "coldbrew", "varsityblues", "northside", "jules99"
-  ];
-
-  const CHAT_LINES = [
-    "this ref is blind fr",
-    "who's got a good stream, mine keeps buffering",
-    "WHAT A PLAY",
-    "feed is clean tonight",
-    "my parlay is sweating",
-    "defense asleep again",
-    "chat is moving fast lol",
-    "called it",
-    "no way he missed that",
-    "4th quarter about to be crazy",
-    "anyone else lagging?",
-    "the other stream is smoother for me",
-    "bench player carried that quarter",
-    "told yall they were cooked",
-    "LETS GOOO",
-    "clock management is terrible",
-    "that was a foul 100%",
-    "who else watching from work",
-    "ot incoming",
-    "crowd is loud tonight"
-  ];
-
-  function nameColor(name) {
-    let h = 0;
-    for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 360;
-    return "hsl(" + h + ", 62%, 66%)";
-  }
-
-  function appendChat(name, text, kind) {
-    const log = document.getElementById("chatLog");
-    if (!log) return;
-
-    const atBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 60;
-    const div = document.createElement("div");
-    div.className = "msg" + (kind ? " " + kind : "");
-
-    if (kind === "sys") {
-      div.textContent = text;
-    } else {
-      const who = document.createElement("span");
-      who.className = "who";
-      who.style.color = kind === "mine" ? "#6fd3a0" : nameColor(name);
-      who.textContent = name + ": ";
-      div.appendChild(who);
-      div.appendChild(document.createTextNode(text));
-    }
-
-    log.appendChild(div);
-
-    // Bound the log so a long session doesn't grow without limit.
-    while (log.childNodes.length > 250) log.removeChild(log.firstChild);
-
-    if (atBottom) log.scrollTop = log.scrollHeight;
-  }
-
-  let chatSeq = 0;
-
-  function startChat() {
-    appendChat(null, "Match chat. Keep it civil.", "sys");
-
-    for (let i = 0; i < 6; i++) {
-      chatSeq += 1;
-      appendChat(
-        CHAT_USERS[chatSeq % CHAT_USERS.length],
-        CHAT_LINES[(chatSeq * 7) % CHAT_LINES.length]
-      );
-    }
-
-    chatTimer = setInterval(function () {
-      if (document.hidden) return;
-      chatSeq += 1;
-      appendChat(
-        CHAT_USERS[Math.floor(Math.random() * CHAT_USERS.length)],
-        CHAT_LINES[Math.floor(Math.random() * CHAT_LINES.length)]
-      );
-    }, 3200);
-  }
-
-  function wireChat() {
-    const form = document.getElementById("chatForm");
-    const input = document.getElementById("chatInput");
-    if (!form || !input) return;
-
-    startChat();
-
-    on(form, "submit", function (e) {
-      e.preventDefault();
-      const text = input.value.trim();
-      if (!text) return;
-      appendChat("you", text, "mine");
-      input.value = "";
-    });
-  }
-
-  function wireTabs() {
-    const tabs = document.querySelectorAll(".side-tabs button");
-    const chat = document.getElementById("panelChat");
-    const games = document.getElementById("panelGames");
-
-    tabs.forEach(function (btn) {
-      on(btn, "click", function () {
-        const isChat = btn.getAttribute("data-tab") === "chat";
-        tabs.forEach(function (b) { b.classList.remove("active"); });
-        btn.classList.add("active");
-        chat.classList.toggle("active", isChat);
-        games.classList.toggle("active", !isChat);
-      });
-    });
-  }
-
   /* ---------- teardown ---------- */
 
   function destroy() {
     clearTimeout(idleTimer);
-    clearInterval(chatTimer);
     idleTimer = null;
-    chatTimer = null;
 
     unbindAll();
 

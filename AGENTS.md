@@ -13,7 +13,7 @@ index.html            app shell, the only HTML file
 css/style.css         the entire design system
 js/data.js            data layer: ESPN scores, stream resolver, local overrides
 js/app.js             hash router, home view, cards, search, reveal
-js/player.js          watch view: HLS + iframe embeds, chat, related list
+js/player.js          watch view: HLS + iframe embeds, related list
 js/mirrors.js         array of mirror URLs
 serve.py              local static server, no-store headers
 scripts/check.mjs     CI: syntax, asset refs, stub markers
