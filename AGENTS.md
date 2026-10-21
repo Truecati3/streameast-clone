@@ -14,9 +14,12 @@ index.html            shell: global nav, stream sub-header, #view, footer
 css/style.css         StreamEast design system
 css/mothership.css    hub + global nav tokens
 css/gzme.css          GZME console
+css/anime.css         anime shelf theme (tabs local vars on .anime)
 js/data.js            data layer: ESPN scores, stream resolver, local overrides
 js/hub.js             hub view (hero, dock, contact), avatar upgrade
 js/gzme.js            game catalog, shelves, launch overlay
+js/anime-sources.js   anime playback source list (ships empty; see below)
+js/anime.js           anime catalog via AniList GraphQL, detail views, in-page player
 js/app.js             hash router, home view, cards, search, reveal
 js/player.js          watch view: HLS + iframe embeds, related list
 js/mirrors.js         array of mirror URLs
@@ -25,10 +28,11 @@ serve.py              local static server, no-store headers
 scripts/check.mjs     CI: syntax, asset refs, stub markers
 ```
 
-Load order matters: `mirrors.js`, `data.js`, `hub.js`, `gzme.js`, `app.js`,
-`player.js`. All are classic scripts exposing globals (`window.SE_DATA`,
-`window.SE_HUB`, `window.SE_GZME`, `window.SE_PLAYER`). Do not convert them to ES
-modules without replacing the `file://` support story.
+Load order matters: `mirrors.js`, `data.js`, `hub.js`, `gzme.js`,
+`anime-sources.js`, `anime.js`, `app.js`, `player.js`. All are classic scripts
+exposing globals (`window.SE_DATA`, `window.SE_HUB`, `window.SE_GZME`,
+`window.SE_ANIME`, `window.SE_PLAYER`). Do not convert them to ES modules
+without replacing the `file://` support story.
 
 ## Invariants — do not break these
 
@@ -38,7 +42,9 @@ modules without replacing the `file://` support story.
    `js/data.js#normalize`. If you need a field, add it there, not in a view.
 3. **Media never leaves this domain.** The site embeds third-party players and plays HLS.
    Never add code that proxies or re-hosts video.
-4. **`player.js` is the only file that touches video.** Views do not create media elements.
+4. **`player.js` is the only file that touches video.** Views do not create media
+   elements. The anime in-page player is an iframe shell only — it embeds a URL and
+   nothing else.
 5. **No hidden state in the DOM.** State lives in module scope; the DOM is rendered from it.
 6. **Every network call fails closed.** Wrap fetches, render an explicit empty or error
    state, never a spinner that never resolves.
@@ -67,11 +73,21 @@ stays correct; `destroy()` must leave nothing attached, playing, or polling.
 
 **Add a route**
 Routes are `#/` (hub), `#/stream`, `#/stream/l/<league>`,
-`#/stream/watch/<gameId>` and `#/gzme`, parsed in `app.js#parseRoute`. Extend that
-function and `route()`, and set `data-route` on `<body>` through `setRouteChrome` so
-CSS can show or hide the StreamEast sub-header. Call `SE_PLAYER.destroy()` and
-`SE_GZME.destroy()` on any route that is not their own view; both own timers and
-overlays that must not survive a route change.
+`#/stream/watch/<gameId>`, `#/gzme`, `#/anime`, `#/anime/i/<anilistId>` and
+`#/anime/s/<term>`, parsed in `app.js#parseRoute`. Extend that function and
+`route()`, and set `data-route` on `<body>` through `setRouteChrome` so CSS can
+show or hide the StreamEast sub-header. Call `SE_PLAYER.destroy()`,
+`SE_GZME.destroy()` and `SE_ANIME.destroy()` on any route that is not their own
+view; they own timers and overlays that must not survive a route change.
+
+**Add an anime playback source**
+`js/anime-sources.js` (`window.SE_ANIME_SOURCES`) is the only playback config for
+the anime tab. Shape: `{ id, label, url }` where `url` is an embeddable
+watch-page template with `{id}` (AniList id) and `{ep}` placeholders. The host
+must allow iframing — anything sending `X-Frame-Options` or a `frame-ancestors`
+CSP renders blank in the player and the chip row exists precisely so the viewer
+can switch. The list ships empty on purpose: this repo catalogs metadata and
+renders a player shell; it does not pick, vet, or supply playback hosts.
 
 **Add a game to GZME**
 Two sources, one shape:

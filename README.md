@@ -83,7 +83,29 @@ to colour instead of a broken-image glyph.
 
 The overlay opens in place, grabs fullscreen, `F` toggles fullscreen, `Esc` leaves
 fullscreen then closes the overlay. Arrow keys walk the row, `Enter` launches the
-focused tile.
+focused tile. Scrolling the page moves through the row: the wheel drives the shelf
+horizontally and the tile nearest the viewport centre owns the focus ring and the
+key art.
+
+## Anime
+
+`js/anime.js` is a miruro-style dark shelf powered by the real AniList GraphQL API
+(`https://graphql.anilist.co`, public, no key): trending / all-time popular / top
+rated rows, search, and detail pages with banner, cover, genres, synopsis and an
+episode grid. All title text and covers come straight from AniList — nothing is
+invented; dead data fails into an explicit error state with a retry.
+
+Episodes open the **in-page player**: a fixed overlay with an iframe plus a source
+chip row, `Esc` or the Done button closes it. There is no "open in a new tab"
+playback anywhere in the tab, by design.
+
+`js/anime-sources.js` (`window.SE_ANIME_SOURCES`) holds the playback sources and
+ships **empty**. A source is `{ id, label, url }` where `url` is an embeddable
+watch-page template — `{id}` becomes the AniList id, `{ep}` the episode number.
+Hosts that refuse iframes (`X-Frame-Options`, `frame-ancestors`) render blank and
+the player says so on screen; the chip row exists so you can jump to another
+source. The site never hosts, proxies, or resolves media itself — the repo
+catalogs metadata and renders a shell around a URL you configure.
 
 ## Design
 
@@ -102,9 +124,12 @@ index.html                    shell: global nav, stream sub-header, #view, foote
 css/style.css                 StreamEast design system
 css/mothership.css            hub + global nav
 css/gzme.css                  GZME console
+css/anime.css                 anime shelf + player theme
 js/data.js                    ESPN loader, stream resolver, overrides
 js/hub.js                     hub view, discord link, avatar upgrade
 js/gzme.js                    game catalog, shelves, launch overlay
+js/anime-sources.js           anime playback source list (ships empty)
+js/anime.js                   AniList catalog, detail views, in-page player
 js/app.js                     router, cards, search, reveal
 js/player.js                  watch view, HLS/iframe, related
 js/mirrors.js                 mirror URL list

@@ -3,16 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Mothership — a dock for StreamEast live sports and GZME browser games.">
-<meta name="theme-color" content="#08090b">
-<meta property="og:title" content="Mothership">
-<meta property="og:description" content="StreamEast live sports and GZME browser games, one dock.">
+    <meta name="description" content="Mothership — a dock for StreamEast live sports, GZME browser games and the AniList anime shelf.">
+    <meta name="theme-color" content="#08090b">
+    <meta property="og:title" content="Mothership">
+    <meta property="og:description" content="StreamEast live sports, GZME browser games and an anime shelf, one dock.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23ff4c25'/%3E%3Cpath d='M9 20V12l7 5 7-5v8' stroke='%23000' stroke-width='2.4' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E">
 <title>Mothership</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
-<link rel="stylesheet" href="css/style.css?v=13">
-<link rel="stylesheet" href="css/mothership.css?v=13">
-<link rel="stylesheet" href="css/gzme.css?v=13">
+<link rel="stylesheet" href="css/style.css?v=15">
+<link rel="stylesheet" href="css/mothership.css?v=15">
+<link rel="stylesheet" href="css/gzme.css?v=15">
+<link rel="stylesheet" href="css/anime.css?v=15">
 </head>
 <body data-route="hub">
 
@@ -28,6 +29,7 @@
     <a href="#/" data-tab="hub">Home</a>
     <a href="#/stream" data-tab="stream">StreamEast</a>
     <a href="#/gzme" data-tab="gzme">GZME</a>
+    <a href="#/anime" data-tab="anime">Anime</a>
   </nav>
 
   <a class="mnav-disc" href="https://discord.com/users/1387" target="_blank" rel="noopener">
@@ -79,11 +81,13 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js"></script>
-<script src="js/mirrors.js?v=13"></script>
-<script src="js/data.js?v=13"></script>
-<script src="js/hub.js?v=13"></script>
-<script src="js/gzme.js?v=13"></script>
-<script src="js/app.js?v=13"></script>
-<script src="js/player.js?v=13"></script>
+<script src="js/mirrors.js?v=15"></script>
+<script src="js/data.js?v=15"></script>
+<script src="js/hub.js?v=15"></script>
+<script src="js/gzme.js?v=15"></script>
+<script src="js/anime-sources.js?v=15"></script>
+<script src="js/anime.js?v=15"></script>
+<script src="js/app.js?v=15"></script>
+<script src="js/player.js?v=15"></script>
 </body>
 </html>

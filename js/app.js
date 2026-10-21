@@ -295,22 +295,32 @@
     const hash = location.hash || "#/";
 
     if (hash === "#/" || hash === "#") {
-      return { hub: true, gzme: false, watch: null, league: null };
+      return { hub: true, gzme: false, anime: false, watch: null, league: null };
     }
     if (hash.indexOf("#/gzme") === 0) {
-      return { hub: false, gzme: true, watch: null, league: null };
+      return { hub: false, gzme: true, anime: false, watch: null, league: null };
+    }
+    if (hash.indexOf("#/anime") === 0) {
+      return {
+        hub: false,
+        gzme: false,
+        anime: true,
+        animeId: (hash.match(/^#\/anime\/i\/(\d+)/) || [])[1] || null,
+        animeSearch: decodeURIComponent((hash.match(/^#\/anime\/s\/(.+)$/) || [])[1] || "") || null
+      };
     }
     if (hash.indexOf("#/stream") === 0) {
       return {
         hub: false,
         gzme: false,
+        anime: false,
         watch: (hash.match(/^#\/stream\/watch\/([\w-]+)/) || [])[1] || null,
         league: (hash.match(/^#\/stream\/l\/([\w-]+)/) || [])[1] || null
       };
     }
 
     /* anything else is not a dock — the hub owns unknown hashes */
-    return { hub: true, gzme: false, watch: null, league: null };
+    return { hub: true, gzme: false, anime: false, watch: null, league: null };
   }
 
   function setRouteChrome(kind) {
@@ -320,6 +330,7 @@
       tabs[i].classList.toggle("active", tabs[i].getAttribute("data-tab") === kind);
     }
     if (kind === "stream") document.title = "StreamEast — Live Sports Streams";
+    else if (kind === "anime") document.title = "Anime — Mothership";
     else if (kind === "hub") document.title = "Mothership";
   }
 
@@ -342,6 +353,7 @@
     if (r.hub) {
       SE_PLAYER.destroy();
       if (window.SE_GZME) SE_GZME.destroy();
+      if (window.SE_ANIME) SE_ANIME.destroy();
       clearInterval(refreshTimer);
       setRouteChrome("hub");
       window.SE_HUB.render(view);
@@ -351,6 +363,7 @@
 
     if (r.gzme) {
       SE_PLAYER.destroy();
+      if (window.SE_ANIME) SE_ANIME.destroy();
       clearInterval(refreshTimer);
       setRouteChrome("gzme");
       window.SE_GZME.render(view);
@@ -358,7 +371,18 @@
       return;
     }
 
+    if (r.anime) {
+      SE_PLAYER.destroy();
+      if (window.SE_GZME) SE_GZME.destroy();
+      clearInterval(refreshTimer);
+      setRouteChrome("anime");
+      window.SE_ANIME.render(view, r.animeId, r.animeSearch);
+      window.scrollTo(0, 0);
+      return;
+    }
+
     setRouteChrome("stream");
+    if (window.SE_ANIME) SE_ANIME.destroy();
 
     if (r.watch) {
       renderNav();
