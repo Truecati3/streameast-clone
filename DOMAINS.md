@@ -132,8 +132,7 @@ Attach a purchased `.com` to any of them from the CF dashboard — certificate i
 ```
 netlify.toml          Netlify config (root)
 vercel.json           Vercel config (root)
-CNAME                 GitHub Pages custom domain (edit before use)
-.github/workflows/pages.yml   GitHub Pages auto-deploy
+CNAME                 add only when you own the domain (Pages reads it)
 ```
 
 ## 6. Deploy commands
@@ -152,10 +151,9 @@ npm i -g wrangler
 wrangler pages deploy . --project-name streameast
 
 # GitHub Pages
-git init && git add . && git commit -m "init"
-git remote add origin git@github.com:YOU/streameast.git
-git push -u origin main
-# then Settings > Pages > Source: GitHub Actions
+# repo is already on GitHub — Pages deploys straight from the branch, no build
+# Settings > Pages > Source: Deploy from a branch > main > / (root)
+# site lands at https://<user>.github.io/<repo>/
 ```
 
 ---
